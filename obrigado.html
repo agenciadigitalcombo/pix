@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt">
+<!-- Obrigado por sua generosidade! -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./assets/css/obrigado.css">
+    <title>Obrigado</title>
+    <script src="./assets/js/library/qrcode.js" defer></script>
+    <script src="./assets/js/obrigado.js" type="module" defer></script>
+    <link rel="shortcut icon" href="./assets/logo/ico.svg" type="image/x-icon">
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <img class="logo" src="./assets/logo/combopay.svg" alt="combopay" style="width: 120PX; height: 120PX;">
+        </header>
+
+        <br>
+        <div id="block2">
+            <h2> abaixo encontra-se o seu QR Code </h2>
+            <div class="space">
+                <img class="logo" src="./assets/icon/qr.png" alt="combopay" style="width: 120PX; height: 120PX;">
+            </div>
+        </div>
+
+        <div style=" text-align: center;">
+            <a href="./index.html">
+                <button style=" margin-top: 2%;"><img class="verif ic" src="./assets/icon/voltar.png"><strong style="float: right; padding-top: 10px;"><h3>Voltar </h3></strong> </button>
+            </a>
+        </div>
+
+        <div id="block2">
+            <p>Seu codigo pix.</p>
+            <div id="inpContainer">
+                <input type="text" ref="codigo_pix" v-model="qr">
+                <button @click="copiar('codigo_pix')"><b>Copiar</b></button>
+            </div>
+
+        </div>
+
+        <footer>
+            <div>
+                <br><br>
+                <div>
+                    <p class="copy"> © Digital Combo Pay </p>
+                </div>
+                <br><br>
+            </div>
+
+        </footer>
+    </div>
+</body>
+
+</html>

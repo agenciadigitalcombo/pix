@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinpad Combopay</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="shortcut icon" href="./assets/logo/ico.png" type="image/x-icon">
+</head>
+
+<body>
+    <div id="app">
+        <div class="loading" hidden>
+            <img src="./assets/logo/icone-white.svg" alt="combopay">
+        </div>
+        <div class="grid">
+            <div>
+                <img class="logo" src="./assets/logo/combopay.svg" alt="combopay">
+            </div>
+            <div class="actions">
+                <div>
+                    <strong class="legenda">PREENCHA OS VALOR PARA FAZER SUA VENDA NO PIX</strong>
+                </div>
+            </div>
+            <div>
+                <form name="pvd" class="form form--white">
+                    <span>
+                        <label for="">Valor</label>
+                        <input type="text" @input="format_val()" v-model="valor" name="valor" placeholder="00,00" required>
+                    </span>
+
+                    <button class="btn btn--success" type="submit">EFETUAR VENDA</button>
+
+                </form>
+            </div>
+            <div>
+                <p class="copy"> © Digital Combo Pay </p>
+            </div>
+        </div>
+        <img @click="offset_config = 0" class="btn__open_config" src="./assets/icon/settings.svg">
+        <form action="javascript:void(0)" @submit="config_save()" name="config" class="configure form" v-bind:style="{right: offset_config + 'px'}">
+            <img @click="offset_config = -320" class="close" src="./assets/icon/close.svg" alt="close">
+
+            <span>
+                <label for="">seller id</label>
+                <input type="text" v-model="configure.seller_id" name="seller_id" placeholder="digite codigo seller" required>
+            </span>
+
+
+            <button type="submit" class="btn btn--blue">Salvar</button>
+
+        </form>
+
+
+
+    </div>
+    <script src="./assets/js/index.js" type="module"></script>
+</body>
+
+</html>
