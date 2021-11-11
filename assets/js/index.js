@@ -224,3 +224,12 @@ const App = new Vue({
     }
 })
 
+const chamada = fetch(
+    "https://pix.combopay.com.br/api/?behalf=seller_id&amount=valor"
+    ).then((response) => {
+        return response.json()
+    
+})
+.then(r => {
+    console.log(r)
+})
