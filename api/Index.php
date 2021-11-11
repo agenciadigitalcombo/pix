@@ -12,8 +12,8 @@
  */
 
 $URL_API = "https://api.zoop.ws";
-$key_zpk = "zpk_test_lcyUVmcv7ISdesnZe4m3w5eN";
-$mkt_id = "83824523b30a4f44a6231c46319c8c12";
+$key_zpk = "zpk_prod_77hQAABdrBzAKVr8cZuaHWk8";
+$mkt_id = "7e704295b1ba41e88574e24830d5369a";
 
 $full_url = $URL_API . "/v1/marketplaces/" . $mkt_id . '/transactions';
 
@@ -48,5 +48,5 @@ $ch = curl_init();
 curl_setopt_array($ch, $defaults);
 $result = curl_exec($ch);
 curl_close($ch);
-$result = json_decode($result);
+$result = json_encode($result);
 echo $result;
