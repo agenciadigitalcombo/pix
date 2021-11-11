@@ -1,5 +1,9 @@
 <?php
 
+header('Content-Type: text/html; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+date_default_timezone_set('America/Sao_Paulo');
+
 $URL_API = "https://api.zoop.ws";
 $key_zpk = "zpk_prod_77hQAABdrBzAKVr8cZuaHWk8" . ":";
 $mkt_id =  "7e704295b1ba41e88574e24830d5369a";
