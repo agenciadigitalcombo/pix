@@ -3,7 +3,7 @@ const App = new Vue({
     el: '#app',
     data: {
         offset_config: -320,
-        valor: '00,00',
+        valor: "00,00",
         operacao: "credit",
         tipo_parcela: 1,
         disabled: false,
@@ -26,6 +26,7 @@ const App = new Vue({
         },
         popups: "",
         transactionId: null,
+        
     },
     watch: {
         operacao(val) {
@@ -214,22 +215,27 @@ const App = new Vue({
 
             this.valor = val
         },
-    
-
+        async chamada_url(){
+            let guard_val = this.valor
+            let format_valor = parseInt(guard_val)
+            fetch("https://pix.combopay.com.br/api/?behalf=seler&amount=valor")
+            .then(res => res.json())
+            .then(data =>{
+                data.seler = this.seller_id
+                data.valor = format_valor
+                console.log(data)
+            })
+            
+        }
+        
     },
     mounted() {
+        this.chamada_url()
         this.configure = { ...this.configure, ...this.config_info() }
         this.start_ws()
         this.historico = JSON.parse( localStorage.getItem('historico') || '[]' )
+       
     }
 })
 
-const chamada = fetch(
-    "https://pix.combopay.com.br/api/?behalf=seller_id&amount=valor"
-    ).then((response) => {
-        return response.json()
-    
-})
-.then(r => {
-    console.log(r)
-})
+
