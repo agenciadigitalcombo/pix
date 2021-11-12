@@ -16,16 +16,31 @@ body {
 
 .loading {
     display: flex;
+    left: 0;
+    top: 0;
+    position: fixed;
     width: 100%;
     min-height: 100vh;
     align-items: center;
     justify-content: center;
-    background-image: url("../bg/bg.jpg");
+    background-image: url("../bg/foto.jpg");
     background-size: cover;
+    z-index: 99999999999999;
 }
 
-.loading img {
-    width: 150px;
+.loading svg {
+    width: 50px;
+    filter: invert(1);
+    transform: rotate(0deg);
+    animation-name: loop;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes loop {
+    to {
+        transform: rotate(-360deg);
+    }
 }
 
 .btn__open_config {
@@ -60,6 +75,9 @@ body {
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
     z-index: 99999999999;
 }
+.active_config {
+    right: 0;
+}
 
 .logo {
     display: block;
@@ -91,7 +109,7 @@ body {
     max-width: 95vw;
     margin: 0 auto;
     min-height: 100vh;
-    grid-template-rows: 70px 30vh 1fr 30px;
+    grid-template-rows: 70px 1fr 30px;
 }
 
 .col {
@@ -180,14 +198,14 @@ body {
 
 .error {
     display: block;
+    text-align: center;
     padding: 7px 20px;
     border-radius: 4px;
     background-color: #c00;
     margin: 10px 0;
-    color: #f1c40f;
-    font-weight: 700;
-    box-shadow: 1px 2px 3px 1px rgba(0, 0, 0, 0.2);
-    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+    color: #FFF;
+    border: 1px solid #FFF;
+
 }
 
 .pinpad_messages {
@@ -248,8 +266,7 @@ body {
     font-weight: bolder;
 }
 
-.form select,
-.form input {
+.form select, .form input {
     display: block;
     width: 100%;
     background-color: transparent;
@@ -262,8 +279,7 @@ body {
     font-weight: 700;
 }
 
-.form select:focus,
-.form input:focus {
+.form select:focus, .form input:focus {
     border-bottom: 2px solid #0094e8;
 }
 
@@ -292,15 +308,13 @@ body {
     color: #0094e8;
 }
 
-.form--white select,
-.form--white input {
+.form--white select, .form--white input {
     border-bottom: 2px solid #f7f7f7;
     color: #f7f7f7;
     font-weight: 700;
 }
 
-.form--white select::placeholder,
-.form--white input::placeholder {
+.form--white select::placeholder, .form--white input::placeholder {
     color: #f7f7f7;
 }
 
@@ -345,6 +359,12 @@ body {
     border: 2px solid #0094e8;
 }
 
+.btn--yellow {
+    color: #111;
+    background-color: #f1c40f;
+    border: 2px solid #f1c40f;
+}
+
 .link {
     display: inline-block;
     text-decoration: none;
@@ -353,4 +373,32 @@ body {
 
 .link:hover {
     text-decoration: underline;
+}
+
+.title {
+    text-align: center;
+    color: #FFF;
+    font-family: "Montserrat", sans-serif;
+}
+
+.grid-copy {
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    grid-gap: 20px;
+}
+
+.qr {
+    display: block;
+    margin: 0 auto;
+    width: 290px;
+    padding: 30px;
+    background-color: #FFF;
+    border-radius: 8px;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

@@ -5,59 +5,71 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pinpad Combopay</title>
+    <title>Combo Pay</title>
     <link rel="stylesheet" href="./assets/css/style.css">
     <link rel="shortcut icon" href="./assets/logo/ico.png" type="image/x-icon">
+    <script src="./assets/js/vendor/qrcode.js" defer></script>
+    <script src="./assets/js/index.js" type="module" defer></script>
 </head>
 
 <body>
     <div id="app">
-        <div class="loading" hidden>
-            <img src="./assets/logo/icone-white.svg" alt="combopay">
+
+        <div class="loading" v-if="loading">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
         </div>
+
         <div class="grid">
-            <div>
-                <img class="logo" src="./assets/logo/combopay.svg" alt="combopay">
-            </div>
-            <div class="actions">
-                <div>
-                    <strong class="legenda">PREENCHA OS VALOR PARA FAZER SUA VENDA NO PIX</strong>
+            <img class="logo" src="./assets/logo/combopay.svg" alt="combopay">            
+            <div class="flex-center">
+
+                <div v-if="step==1">
+                    <h2 class="title">VALOR PARA GERAR PIX</h2> <br>
+                    <form action="javascript:void(0)" @submit="pix" class="form form--white">
+                        <span>
+                            <label>Valor</label>
+                            <input type="text" @input="masc_money" v-model="amount" placeholder="00,00" required>
+                        </span>
+                        <button class="btn btn--success" type="submit">EFETUAR VENDA</button>
+                        <div v-if="error" class="error">{{error}}</div>
+                    </form>
                 </div>
-            </div>
-            <div>
-                <form name="pvd" class="form form--white">
-                    <span>
-                        <label for="">Valor</label>
-                        <input type="text" @input="format_val()" v-model="valor" name="valor" placeholder="00,00" required>
-                    </span>
 
-                    <button class="btn btn--success" type="submit">EFETUAR VENDA</button>
+                <div class="form form--white" v-show="step==2">
+                    <h2 class="title">PIX GERADO COM SUCESSO</h2> <br>
+                    <div class="qr" ref="print_qr"></div>
+                    <div class="grid-copy">
+                        <input v-model="codigo_qr" ref="code_qr" >
+                        <div> <span @click="copiar" class="btn btn--yellow">COPIAR</span> </div>
+                    </div> <br>
+                    <span class="btn btn--white" @click="go_back">Voltar</span>
+                </div>
 
-                </form>
             </div>
-            <div>
-                <p class="copy"> © Digital Combo Pay </p>
-            </div>
+            <p class="copy"> © Digital Combo Pay </p>
         </div>
-        <img @click="offset_config = 0" class="btn__open_config" src="./assets/icon/settings.svg">
-        <form action="javascript:void(0)" @submit="config_save()" name="config" class="configure form" v-bind:style="{right: offset_config + 'px'}">
-            <img @click="offset_config = -320" class="close" src="./assets/icon/close.svg" alt="close">
 
+        <svg @click="open_config" class="btn__open_config" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+
+        <form @submit="save_seller" action="javascript:void(0)" name="config" :class="{ configure: true, form: true, active_config: config }">
+            <div class="close" @click="close_config"> X </div>
             <span>
-                <label for="">seller id</label>
-                <input id="txtsellerId" type="text" v-model="configure.seller_id" name="seller_id" placeholder="digite codigo seller" required>
+                <label>Seller ID</label>
+                <input type="text" v-model="seller_id" placeholder="Digite..." required>
             </span>
-
-
             <button type="submit" class="btn btn--blue">Salvar</button>
-
         </form>
 
-
-
     </div>
-    <script src="./assets/js/index.js" type="module"></script>
-    
+
 </body>
 
 </html>

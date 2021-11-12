@@ -1,240 +1,85 @@
-import Vue from './library/vue.js'
+import Vue from './vendor/vue.js'
+
 const App = new Vue({
     el: '#app',
     data: {
-        offset_config: -320,
-        valor: "00,00",
-        operacao: "credit",
-        tipo_parcela: 1,
-        disabled: false,
-        offset_alert: -100,
-        message: '',
-        pinpad_messages: '',
-        pinpad_error: '',
-        pinpad_success: '',
-        max_parcelas: [],
-        configure: {
-            marketplace_id: null,
-            seller_id: null,
-            publishable_key: null,
-            serial_port_list: 'AUTO',
-        },
-        historico: [],
-        error: {
-            message: '',
-            status: false
-        },
-        popups: "",
-        transactionId: null,
-        
-    },
-    watch: {
-        operacao(val) {
-            if (val == 1) {
-                this.tipo_parcela = 1
-                this.disabled = true
-            } else {
-                this.disabled = false
-            }
-        },
-        valor(val) {
-
-            let valor = val
-            let parcelas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-
-            valor = valor.replace('.', '')
-            valor = valor.replace(',', '.')
-            valor = parseFloat(valor)
-
-            parcelas = parcelas.map((item, key) => valor / (key + 1))
-            parcelas = parcelas.filter(x => x >= 5)
-            this.max_parcelas = parcelas.map((item, id) => ({ id: id + 1, text: id == 0 ? 'Escolha número de parcelas' : `PARCELADO ${id + 1}X` }))
-
-            console.log(parcelas.length)
-        }
+        loading: false,
+        amount: '0,00',
+        seller_id: null,
+        config: false,
+        step: 1,
+        error: null,
+        codigo_qr: null
     },
     methods: {
-        cache() {
-            this.historico.push({
-                id: this.transactionId,
-                valor: this.valor,
-                data: Date.now()
-            })
-            localStorage.setItem('historico', JSON.stringify( this.historico ))            
+        to_cents: amount => amount.replace(/\D/gi, ''),
+        save_seller() {
+            localStorage.setItem('seller_id', this.seller_id)
+            this.close_config()
         },
-        onopen(event) {
-            // console.log('websocket conectado com sucesso')
-            // console.log( event )
-        },
-        onclose(event) {
-            console.log(event)
-            this.error.status = true
-            this.error.message = 'conexão com websocket cancelada'
-        },
-        onmessage(event) {
-            let data = JSON.parse(event.data)
-            this.pinpad_messages = data.message
-            // console.log(data)
-            switch (data.message) {
-                case "SOLICITE A SENHA":
-                    this.popups = 'pass'
-                    break;
-                case "RETIRE O CARTAO":
-                    // this.popups = 'remova'                    
-                    break;
-                case "Insira ou passe o cartão":
-                    this.popups = 'insira'                    
-                    break;
+        async pix() {
+            let seller_id = this.seller_id
+            let amount = this.to_cents(this.amount)
+            if(!seller_id) {
+                this.error = "Configure um ID de vendedor"
+                return false
             }
-            switch (data.mid) {
-                case "endOfTransaction":
-                    this.cancelar()
-                    break;
-                case "paymentSuccessful":
-                    this.transactionId = data.id
-                    this.popups = 'sucesso'
-                    // this.cache()
-                    break;
-                case "paymentFailed":
-                    this.popups = 'erro'
-                    break;
-                case "onStartTransaction":
-                    this.popups = 'insira'
-                    break;
-                case "voidTransactionSuccessful":
-                    this.popups = 'estornado'
-                    break;
+            if( amount < 500 ) {
+                this.error = "Somente valor acima de R$5,00"
+                return false
             }
-        },
-        onerror(event) {
-            // this.error.status = true
-            // this.error.message ='algo inesperado aconteceu'
-            this.popups = 'wifi'
-        },
-        error(event) {
-            // this.error.status = true
-            // this.error.message ='erro ao conectar o websocket'
-            this.popups = 'wifi'
-        },
-        start_ws() {
-            try {
-                globalThis.ws = new WebSocket('ws://localhost:1337')
-                globalThis.ws.onopen = this.onopen
-                globalThis.ws.onclose = this.onclose
-                globalThis.ws.onmessage = this.onmessage
-                globalThis.ws.onerror = this.onerror
-            } catch (event) {
-                this.error(event)
+            if( amount > 99900 ) {
+                this.error = "Somente valor até  R$999,00"
+                return false
             }
-        },
-        valor_in_centavos: valor => valor.replace(/\D/gi, ''),
-        tipo_opercacao(numero) {
-            let arr = [
-                "credit",
-                "debit",
-                "credit_with_installments",
-                "voucher",
-            ]
-            return arr[parseInt(numero)] || "credit"
-        },
-        vender() {
-            let playload = {
-                mid: 'charge',
-                marketplaceId: this.configure.marketplace_id,
-                sellerId: this.configure.seller_id,
-                publishableKey: this.configure.publishable_key,
-                serialPort: this.configure.serial_port_list,
-                paymentType: this.operacao,
-                valueInCents: this.valor_in_centavos(this.valor),
-                numberOfInstallments: this.tipo_parcela,
-                metadata: null,
-                referenceId: null,
+            let full_url = `https://pix.combopay.com.br/api/?behalf=${seller_id}&amount=${amount}`
+            this.loading = true
+            let request = await fetch(full_url)
+            let parse_json = await request.json()
+            this.loading = false
+            this.error = null
+            if( !parse_json.next ) {
+                this.error = parse_json.message
+                return null
             }
-            globalThis.ws.send(JSON.stringify(playload))
+            this.step = 2
+            this.codigo_qr = parse_json.qr_code
+            this.qr( parse_json.qr_code )            
         },
-        estorno() {
-            let playload = {
-                mid: "void",
-                marketplaceId: this.configure.marketplace_id,
-                publishableKey: this.configure.publishable_key,
-                sellerId: this.configure.seller_id,
-                transactionId: this.transactionId,
-                serialPort: this.configure.serial_port_list,
-            }
-            globalThis.ws.send(JSON.stringify(playload))
+        qr(code) {
+            new QRCode(this.$refs.print_qr, {
+                text: code,
+                width: 230,
+                height: 230,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
         },
-        cancelar() {
-            this.valor = '00,00'
-            this.operacao = "credit"
-            this.tipo_parcela = 1
-            this.pinpad_messages = ''
+        close_config() {
+            this.config = false
         },
-        config_save() {
-            localStorage.setItem('PINPAD_CONFIG', JSON.stringify(this.configure))
-            this.message = 'Configurações Atualizadas!'
-            this.offset_alert = 20
-            setTimeout(() => {
-                this.offset_alert = -100
-            }, 3000)
+        open_config() {
+            this.config = true
         },
-        config_info() {
-            return JSON.parse(localStorage.getItem('PINPAD_CONFIG') || '{}')
+        copiar() {
+            this.$refs.code_qr.select(); document.execCommand('copy');
         },
-        format_val() {
-            let val = this.valor
-            val = val.replace('.', '')
-            val = val.replace(/\D/gi, '')
-            val = val ? val : 0
-            val = `${parseInt(val)}` ?? '0'
-            switch (val.length) {
-                case 0:
-                    val = '00,00'
-                    break;
-                case 1:
-                    val = val.replace(/(\d{1})/gi, '00,0$1')
-                    break;
-                case 2:
-                    val = val.replace(/(\d{2})/gi, '00,$1')
-                    break;
-                case 3:
-                    val = val.replace(/(\d{1})(\d{2})/gi, '0$1,$2')
-                    break;
-                case 4:
-                    val = val.replace(/(\d{2})(\d{2})/gi, '$1,$2')
-                    break;
-                case 5:
-                    val = val.replace(/(\d{3})(\d{2})/gi, '$1,$2')
-                    break;
-                case 6:
-                    val = val.replace(/(\d{1})(\d{3})(\d{2})/gi, '$1.$2,$3')
-                    break;
-                default:
-                    val = val.replace(/(\d{1})(\d{3})(\d{2})(.*)/gi, '$1.$2,$3')
-                    break;
-            }
-
-            this.valor = val
+        masc_money() {
+            let valor = this.amount.replace(/\D/gi, '')
+            valor = (valor / 100).toLocaleString('pt-br', { minimumFractionDigits: 2 })
+            this.amount = valor
         },
-        async chamada_url(){
-            let guard_val = this.valor
-            let format_valor = parseInt(guard_val)
-            fetch("https://pix.combopay.com.br/api/?behalf=seler&amount=valor")
-            .then(res => res.json())
-            .then(data =>{
-                data.seler = this.seller_id
-                data.valor = format_valor
-                console.log(data)
-            })
-            
+        go_back() {
+            this.step = 1
+            this.amount = "0,00"
+            this.codigo_qr = null
+            this.error = null
+            this.$refs.print_qr.innerHTML = ''
         }
-        
     },
     mounted() {
-        this.chamada_url()
-        this.configure = { ...this.configure, ...this.config_info() }
-        this.start_ws()
-        this.historico = JSON.parse( localStorage.getItem('historico') || '[]' )
-       
+        this.seller_id = localStorage.getItem('seller_id')
     }
 })
 
