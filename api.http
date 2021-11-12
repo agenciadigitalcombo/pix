@@ -1,0 +1,14 @@
+POST https://pix.combopay.com.br/api/
+
+{
+    "behalf" : "8afba79148464ca7a1833676058eb052",
+    "amount" : 1000
+}
+
+###
+
+POST https://pix.combopay.com.br/api/webhook.php
+
+{
+    "id" : 42
+}
